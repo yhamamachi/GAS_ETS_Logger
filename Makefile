@@ -5,6 +5,8 @@ all:
 	@echo "        Push code to GAS using clasp"
 	@echo "    make pull:"
 	@echo "        Pull code from GAS using clasp"
+	@echo "    make open:"
+	@echo "        Open GAS webpage on browser"
 	@echo ""
 	@echo "Requirement:"
 	@echo "    Please install clasp and login to the google account"
@@ -20,6 +22,10 @@ push: check_clasp
 pull: check_clasp
 	@echo "Pulling code from GAS"
 	@clasp pull
+
+open: check_clasp
+	@echo "Open webpage on browser"
+	@clasp open
 
 check_clasp:
 	@echo Checking clasp binary
