@@ -128,7 +128,7 @@ function _GetFAQAllData(lang="en") {
     console.log(_getLastMonthDateRangeFromDate(_year, _month))
     _FAQ_CAT_DATA = []
     for (f_cnt=0; f_cnt<Object.keys(faqs).length; ++f_cnt) {
-      ret = getFAQenReport(propertyId=FAQGA4_config[lang]['propertyId'], 
+      ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], 
         URLlist=faqs[Object.keys(faqs)[f_cnt]],
         dateRange=_getMonthDateRangeFromDate(_year, _month) )
       count = 0
@@ -183,7 +183,7 @@ function _GetFAQAllDataPeriod(lang="en", date_period_list) {
 
   let data_list = []
   date_period_list.forEach (function (date_range) {
-    ret = getFAQenReport(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
+    ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
     ret = ret['rows']
     count = 0
     try {
@@ -221,7 +221,7 @@ function _GetFAQAllDataPeriod(lang="en", date_period_list) {
 }
 //======================================================================
 
-function test_getFAQenReport(lang="en") {
+function test_getFAQReportFromGA4(lang="en") {
   api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
   api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
 
@@ -245,7 +245,7 @@ function test_getFAQenReport(lang="en") {
   }
   console.log(faqURLs)
 
-  ret = getFAQenReport(propertyId=id_faq_en, URLlist=faqURLs, dateRange=_getLastMonthDateRangeFromDate(2022, 4) )
+  ret = _getFAQReportFromGA4(propertyId=id_faq_en, URLlist=faqURLs, dateRange=_getLastMonthDateRangeFromDate(2022, 4) )
   //console.log(ret);
   ret = ret['rows']
   count = 0
@@ -257,7 +257,7 @@ function test_getFAQenReport(lang="en") {
 }
 //======================================================================
 
-function getFAQenReport(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
+function _getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
   // const metric = {name: 'eventCount'};
   //const metric = {name: 'eventCount', expression: "ga:pageviews"};
   const metric = [{name: 'screenPageViews'}]; // page_viewの代わりらしい
