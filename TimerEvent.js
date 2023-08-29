@@ -11,6 +11,7 @@ function TimerEventWeekly() {
     GetQAinfoFromWebPage()
     FAQ_ranking()
     FAQ_Logger()
+    FAQ_AccessDomainData()
 }
 
 function TimerEventMonthly() {
