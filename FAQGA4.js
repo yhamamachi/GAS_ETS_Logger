@@ -28,6 +28,7 @@ FAQGA4_config = {
   other: {
     ranking_sheet_name: "FAQrank",
     ranking_sheet_header: ["UniqueID", "Period", "Total views", "1st", "2nd", "3rd"],
+    domain_sheet_name: "FAQdomain",
   }
 }
 /**
@@ -55,15 +56,39 @@ function FAQ_Logger() {
     })
 }
 
+function FAQ_AccessDomainData() {
+  let data_list = [];
+
+  ["en", "ja"].forEach(function(lang){
+    faqs = FAQ_getFAQList(lang)
+    l_startDate = FAQGA4_config[lang]["start_year"] + "-" + FAQGA4_config[lang]["start_month"] + "-" + "1"
+    l_endDate = FAQ_getLastMonthDateRange()["endDate"]
+    date_range = {"startDate": l_startDate, "endDate": l_endDate}
+    ret = FAQ_getAccessDomainFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
+    console.log(ret)
+    // data_list
+    data_list.push([lang, date_range])
+    _keys = Object.keys(ret)
+    _keys.forEach(function(key){
+      data_list.push([key, ret[key]])
+    })
+  })
+  console.log(data_list)
+  FAQ_insertRecords(FAQGA4_config["other"]["domain_sheet_name"], data_list, clearFlag=true)
+}
+//======================================================================
+0
 /**
  * OTher function 要整理
  */
 //======================================================================
-function FAQ_insertRecords(mySheetName, values){
+function FAQ_insertRecords(mySheetName, values, clearFlag=false){
   const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(mySheetName)
   const numRows = values.length;
   const numColumns = values[0].length;
   const row_offset = 1 // 1行目はスキップする。
+  if(clearFlag == true)
+    mySheet.clear();
   mySheet.insertRows(row_offset,numRows);
   mySheet.getRange(row_offset, 1, numRows, numColumns).setValues(values);
 }
