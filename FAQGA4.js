@@ -194,42 +194,6 @@ function FAQ_getFAQRanking(lang="en", date_period_list) {
 }
 //======================================================================
 
-function test_getFAQReportFromGA4(lang="en") {
-  api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
-  api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
-
-  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + "31363").getContentText();
-  _subcategories = JSON.parse(html)['SubCategories']
-  SubCategoryIDs = []
-  for (i =0; i< _subcategories.length; ++i) {
-    SubCategoryIDs.push(_subcategories[i]['CategoryID'] )
-  }
-
-  faqURLs = []
-  for (loop=0; loop< SubCategoryIDs.length; ++loop) {
-    let html = UrlFetchApp.fetch(api_getFaqFromSubCategoryID + SubCategoryIDs[loop]).getContentText();
-    _faqs = JSON.parse(html)['Articles']
-    //console.log(_faqs.length)
-    for (n=0; n<_faqs.length;++n){
-      _url = "https://"+lang+"-support.renesas.com/knowledgeBase/" + _faqs[n]['ArticleID']
-      //_url = "/knowledgeBase/" + _faqs[n]['ArticleID']
-      faqURLs.push(_url)
-    }
-  }
-  console.log(faqURLs)
-
-  ret = FAQ_getFAQReportFromGA4(propertyId=id_faq_en, URLlist=faqURLs, dateRange=_getLastMonthDateRangeFromDate(2022, 4) )
-  //console.log(ret);
-  ret = ret['rows']
-  count = 0
-  for(i=0; i < ret.length; i++) {
-      //console.log(ret[i]);
-      count += Number(ret[i]['metricValues'][0]['value'])
-  }
-  console.log(count)
-}
-//======================================================================
-
 function FAQ_getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
   // const metric = {name: 'eventCount'};
   //const metric = {name: 'eventCount', expression: "ga:pageviews"};
