@@ -49,8 +49,10 @@ function FAQ_ranking(sheet_name=FAQGA4_config["other"]["ranking_sheet_name"]) {
 }
 
 function FAQ_Logger() {
-  GetFAQAllDataEN()
-  GetFAQAllDataJA()
+  ["en", "ja"].forEach(function(lang){
+      FAQ_insertRecords(FAQGA4_config[lang]["sheet_name"], _GetFAQAllData(lang))
+      FAQ_duplicate_remover(FAQGA4_config[lang]["sheet_name"]) // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
+    })
 }
 
 /**
@@ -65,16 +67,7 @@ function FAQ_insertRecords(mySheetName, values){
   mySheet.insertRows(row_offset,numRows);
   mySheet.getRange(row_offset, 1, numRows, numColumns).setValues(values);
 }
-function GetFAQAllDataEN() {
-  data_list = _GetFAQAllData("en")
-  FAQ_insertRecords("FAQen", data_list)
-  FAQ_duplicate_remover("FAQen") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-}
-function GetFAQAllDataJA() {
-  data_list = _GetFAQAllData("ja")
-  FAQ_insertRecords("FAQja", data_list)
-  FAQ_duplicate_remover("FAQja") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-}
+
 function _GetFAQAllData(lang="en") {
   let _header = ["date", "count"]
   api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
