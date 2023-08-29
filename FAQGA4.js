@@ -36,11 +36,11 @@ FAQGA4_config = {
 function FAQ_ranking(sheet_name=FAQGA4_config["other"]["ranking_sheet_name"]) {
   ["en", "ja"].forEach(function(lang){
     // 四半期
-    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_quaterly_date_list(lang)))
+    FAQ_insertRecords(sheet_name, FAQ_getFAQRanking(lang, FAQ_get_quaterly_date_list(lang)))
     // 半期
-    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_half_year_date_list(lang)))
+    FAQ_insertRecords(sheet_name, FAQ_getFAQRanking(lang, FAQ_get_half_year_date_list(lang)))
     // 年間
-    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_year_date_list(lang)))
+    FAQ_insertRecords(sheet_name, FAQ_getFAQRanking(lang, FAQ_get_year_date_list(lang)))
   })
   // header部の挿入
   FAQ_insertRecords(sheet_name, [FAQGA4_config["other"]["ranking_sheet_header"]])
@@ -50,7 +50,7 @@ function FAQ_ranking(sheet_name=FAQGA4_config["other"]["ranking_sheet_name"]) {
 
 function FAQ_Logger() {
   ["en", "ja"].forEach(function(lang){
-      FAQ_insertRecords(FAQGA4_config[lang]["sheet_name"], _GetFAQAllData(lang))
+      FAQ_insertRecords(FAQGA4_config[lang]["sheet_name"], FAQ_getFAQViewData(lang))
       FAQ_duplicate_remover(FAQGA4_config[lang]["sheet_name"]) // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
     })
 }
@@ -100,7 +100,7 @@ function FAQ_getFAQList(lang="en") {
   return faqs;
 }
 
-function _GetFAQAllData(lang="en") {
+function FAQ_getFAQViewData(lang="en") {
   let _header = ["date", "count"]
   faqs = FAQ_getFAQList(lang)
   _header.push(...Object.keys(faqs["category"]))
@@ -114,12 +114,12 @@ function _GetFAQAllData(lang="en") {
   for (month=0;month<=loop_num; month++) {
     _month = (month + FAQGA4_config[lang]['start_month'] - 1) % 12 + 1;
     _year = FAQGA4_config[lang]['start_year'] + Math.floor(((month + FAQGA4_config[lang]['start_month']-1))/12)
-    console.log(_getLastMonthDateRangeFromDate(_year, _month))
+    console.log(FAQ_getLastMonthDateRangeFromDate(_year, _month))
     _FAQ_CAT_DATA = []
     for (f_cnt=0; f_cnt<Object.keys(faqs["category"]).length; ++f_cnt) {
-      ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], 
+      ret = FAQ_getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], 
         URLlist=faqs["category"][Object.keys(faqs["category"])[f_cnt]],
-        dateRange=_getMonthDateRangeFromDate(_year, _month) )
+        dateRange=FAQ_getMonthDateRangeFromDate(_year, _month) )
       count = 0
       try{
         ret = ret['rows']
@@ -147,7 +147,7 @@ function _GetFAQAllData(lang="en") {
 }
 
 //======================================================================
-function _GetFAQAllDataPeriod(lang="en", date_period_list) {
+function FAQ_getFAQRanking(lang="en", date_period_list) {
   const _header = FAQGA4_config["other"]["ranking_sheet_header"]
   api_getArticleFromID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetKnowledgeBaseArticle?searchText=&kbid="
   
@@ -156,7 +156,7 @@ function _GetFAQAllDataPeriod(lang="en", date_period_list) {
   
   let data_list = []
   date_period_list.forEach (function (date_range) {
-    ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
+    ret = FAQ_getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
     ret = ret['rows']
     count = 0
     try {
@@ -218,7 +218,7 @@ function test_getFAQReportFromGA4(lang="en") {
   }
   console.log(faqURLs)
 
-  ret = _getFAQReportFromGA4(propertyId=id_faq_en, URLlist=faqURLs, dateRange=_getLastMonthDateRangeFromDate(2022, 4) )
+  ret = FAQ_getFAQReportFromGA4(propertyId=id_faq_en, URLlist=faqURLs, dateRange=_getLastMonthDateRangeFromDate(2022, 4) )
   //console.log(ret);
   ret = ret['rows']
   count = 0
@@ -230,7 +230,7 @@ function test_getFAQReportFromGA4(lang="en") {
 }
 //======================================================================
 
-function _getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
+function FAQ_getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
   // const metric = {name: 'eventCount'};
   //const metric = {name: 'eventCount', expression: "ga:pageviews"};
   const metric = [{name: 'screenPageViews'}]; // page_viewの代わりらしい
@@ -263,7 +263,7 @@ function _getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLl
  * どこのページからアクセスしてきたか解析用の関数
  */
 // en版/knowledgeBase/20933823は、How can I check the version of R-Car S4 Whitebox SDK written to R-Car S4 Reference Board/Spider?。
-function _getAccessFromDomain(propertyId=FAQGA4_config['en']['propertyId'],
+function FAQ_getAccessFromDomain(propertyId=FAQGA4_config['en']['propertyId'],
   URLlist=["https://en-support.renesas.com/knowledgeBase/20933823"],
   dateRange={ startDate: "2023-01-01", endDate: "2023-07-31"}) 
 {
@@ -314,7 +314,7 @@ function _getAccessFromDomain(propertyId=FAQGA4_config['en']['propertyId'],
 // ========================
 // Common func
 // ========================
-function _getMonthDateRangeFromDate(year=2022, month=1) { // (2022,1) => return { startDate: 2021-1-1, endDate: 2021-1-31}
+function FAQ_getMonthDateRangeFromDate(year=2022, month=1) { // (2022,1) => return { startDate: 2021-1-1, endDate: 2021-1-31}
   _endDate = new Date(year, month, 0);
   _startDate = new Date(year, month-1, 1);
   endDate = _endDate.getFullYear() +"-"+(1+_endDate.getMonth())+"-"+_endDate.getDate()
@@ -322,16 +322,16 @@ function _getMonthDateRangeFromDate(year=2022, month=1) { // (2022,1) => return 
   //console.log(startDate,endDate)
   return {startDate: startDate, endDate: endDate}
 }
-function _getLastMonthDateRangeFromDate(year=2022, month=1) { // (2022, 1) -> { startDate: 2021-12-01, endDate: 2021-12-31}
+function FAQ_getLastMonthDateRangeFromDate(year=2022, month=1) { // (2022, 1) -> { startDate: 2021-12-01, endDate: 2021-12-31}
   const d = new Date(year, month-1, 0);
-  return _getMonthDateRangeFromDate(d.getFullYear(), 1+d.getMonth())
+  return FAQ_getMonthDateRangeFromDate(d.getFullYear(), 1+d.getMonth())
 }
-function _getLastMonthDateRange() { // () -> return { startDate: yyyy-mm-dd, endDate: yyyy-mm-dd}
+function FAQ_getLastMonthDateRange() { // () -> return { startDate: yyyy-mm-dd, endDate: yyyy-mm-dd}
   const d = new Date();
-  return _getLastMonthDateRangeFromDate(d.getFullYear(), 1+d.getMonth())
+  return FAQ_getLastMonthDateRangeFromDate(d.getFullYear(), 1+d.getMonth())
 }
 
-function _get_monthly_date_list(lang="en") {
+function FAQ_get_monthly_date_list(lang="en") {
   date_list = []
   start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
@@ -340,7 +340,7 @@ function _get_monthly_date_list(lang="en") {
   loop_month = (12/1)
   for (loop_y=0; loop_y<loop_year; ++loop_y) {
     for (loop_m=0; loop_m<loop_month; ++loop_m) {
-      _dict = _getMonthDateRangeFromDate(start_year+loop_y, loop_m+1)
+      _dict = FAQ_getMonthDateRangeFromDate(start_year+loop_y, loop_m+1)
       date_list.push(_dict)
     }
   }
@@ -348,7 +348,7 @@ function _get_monthly_date_list(lang="en") {
   return date_list
 }
 
-function _get_quaterly_date_list(lang="en") {
+function FAQ_get_quaterly_date_list(lang="en") {
   date_list = []
   start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
@@ -357,8 +357,8 @@ function _get_quaterly_date_list(lang="en") {
   loop_month = (12/3)
   for (loop_y=0; loop_y<loop_year; ++loop_y) {
     for (loop_m=0; loop_m<loop_month; ++loop_m) {
-      _dict_s = _getMonthDateRangeFromDate(start_year+loop_y, 3*loop_m+1)
-      _dict_e = _getMonthDateRangeFromDate(start_year+loop_y, 3*loop_m+3)
+      _dict_s = FAQ_getMonthDateRangeFromDate(start_year+loop_y, 3*loop_m+1)
+      _dict_e = FAQ_getMonthDateRangeFromDate(start_year+loop_y, 3*loop_m+3)
       _dict = {
         "startDate": _dict_s['startDate'],
         "endDate": _dict_e['endDate'],
@@ -370,7 +370,7 @@ function _get_quaterly_date_list(lang="en") {
   return date_list
 }
 
-function _get_half_year_date_list(lang="en") {
+function FAQ_get_half_year_date_list(lang="en") {
   date_list = []
   start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
@@ -390,7 +390,7 @@ function _get_half_year_date_list(lang="en") {
   return date_list
 }
 
-function _get_year_date_list(lang="en") {
+function FAQ_get_year_date_list(lang="en") {
   date_list = []
   start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
