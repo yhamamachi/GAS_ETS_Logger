@@ -227,7 +227,7 @@ function FAQ_getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], U
  * どこのページからアクセスしてきたか解析用の関数
  */
 // en版/knowledgeBase/20933823は、How can I check the version of R-Car S4 Whitebox SDK written to R-Car S4 Reference Board/Spider?。
-function FAQ_getAccessFromDomain(propertyId=FAQGA4_config['en']['propertyId'],
+function FAQ_getAccessDomainFromGA4(propertyId=FAQGA4_config['en']['propertyId'],
   URLlist=["https://en-support.renesas.com/knowledgeBase/20933823"],
   dateRange={ startDate: "2023-01-01", endDate: "2023-07-31"}) 
 {
