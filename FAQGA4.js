@@ -287,12 +287,12 @@ function _getFAQReportFromGA4(propertyId=FAQGA4_config['en']['propertyId'], URLl
 }
 
 /**
- * どこのページからアクセスしてきたか解析用のテスト関数
+ * どこのページからアクセスしてきたか解析用の関数
  */
-// ja版/knowledgeBase/20134171は、Yocto環境でkernel configを変更してビルドする方法。
-function getAccessFromDomain(propertyId=FAQGA4_config['ja']['propertyId'],
-  URLlist=["https://ja-support.renesas.com/knowledgeBase/20134171"],
-  dateRange={ startDate: "2022-01-01", endDate: "2022-01-31"}) 
+// en版/knowledgeBase/20933823は、How can I check the version of R-Car S4 Whitebox SDK written to R-Car S4 Reference Board/Spider?。
+function _getAccessFromDomain(propertyId=FAQGA4_config['en']['propertyId'],
+  URLlist=["https://en-support.renesas.com/knowledgeBase/20933823"],
+  dateRange={ startDate: "2023-01-01", endDate: "2023-07-31"}) 
 {
   var debug_flag = (URLlist.length == 1) ? 1 : 0; // condition ? true : false
   var metric = [{name: 'screenPageViews'}]; // page_viewの代わりらしい
