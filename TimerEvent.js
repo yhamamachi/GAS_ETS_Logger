@@ -9,7 +9,7 @@ function TimerEventDaily() {
 
 function TimerEventWeekly() {
     GetQAinfoFromWebPage()
-    _FAQ_ranking()
+    FAQ_ranking()
     FAQ_Logger()
 }
 

@@ -24,38 +24,28 @@ FAQGA4_config = {
     start_month: 1,
     sheet_name: "FAQja",
     lang: "ja",
+  },
+  other: {
+    ranking_sheet_name: "FAQrank",
+    ranking_sheet_header: ["UniqueID", "Period", "Total views", "1st", "2nd", "3rd"],
   }
 }
 /**
  * Trigger呼び出し関数
  */
-function _FAQ_ranking() {
-  // 四半期
-  data_list = _GetFAQAllDataPeriod("en", _get_quaterly_date_list("en"))
-  FAQ_insertRecords("FAQrank", data_list)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-  data_list = _GetFAQAllDataPeriod("ja", _get_quaterly_date_list("ja"))
-  FAQ_insertRecords("FAQrank", data_list)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-  // 半期
-  data_list = _GetFAQAllDataPeriod("en", _get_half_year_date_list("en"))
-  FAQ_insertRecords("FAQrank", data_list)  
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-  data_list = _GetFAQAllDataPeriod("ja", _get_half_year_date_list("ja"))
-  FAQ_insertRecords("FAQrank", data_list)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-  // 年間
-  data_list = _GetFAQAllDataPeriod("en", _get_year_date_list("en"))
-  FAQ_insertRecords("FAQrank", data_list)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-  data_list = _GetFAQAllDataPeriod("ja", _get_year_date_list("ja"))
-  FAQ_insertRecords("FAQrank", data_list)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
-
+function FAQ_ranking(sheet_name=FAQGA4_config["other"]["ranking_sheet_name"]) {
+  ["en", "ja"].forEach(function(lang){
+    // 四半期
+    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_quaterly_date_list(lang)))
+    // 半期
+    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_half_year_date_list(lang)))
+    // 年間
+    FAQ_insertRecords(sheet_name, _GetFAQAllDataPeriod(lang, _get_year_date_list(lang)))
+  })
   // header部の挿入
-  header = [["UniqueID", "Period", "Total views", "1st", "2nd", "3rd"]]
-  FAQ_insertRecords("FAQrank", header)
-  FAQ_duplicate_remover("FAQrank") // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
+  FAQ_insertRecords(sheet_name, [FAQGA4_config["other"]["ranking_sheet_header"]])
+  // A列の内容がかぶったら後ろの行のデータ(古いほう)を消す
+  FAQ_duplicate_remover(sheet_name)
 }
 
 function FAQ_Logger() {
@@ -159,7 +149,7 @@ function _GetFAQAllData(lang="en") {
 
 //======================================================================
 function _GetFAQAllDataPeriod(lang="en", date_period_list) {
-  const _header = ["UniqueId", "date", "count", "1st viewed FAQ",	"2nd viewed FAQ",	"3rd viewed FAQ"]
+  const _header = FAQGA4_config["other"]["ranking_sheet_header"]
   api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
   api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
   api_getArticleFromID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetKnowledgeBaseArticle?searchText=&kbid="
