@@ -8,7 +8,7 @@
  *   表をいい感じに成型したい。今のは見づら過ぎる。
  */
 
-config = {
+FAQGA4_config = {
   en: {
     propertyId: 266550516,
     category_num: 31891,
@@ -90,7 +90,7 @@ function _GetFAQAllData(lang="en") {
   api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
   api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
 
-  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + config[lang]['category_num']).getContentText();
+  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + FAQGA4_config[lang]['category_num']).getContentText();
   _subcategories = JSON.parse(html)['SubCategories']
   SubCategoryIDs = []
   SubCategoryNames = []
@@ -117,18 +117,18 @@ function _GetFAQAllData(lang="en") {
   }
 
   today = new Date();
-  loop_num = (today.getFullYear() - config[lang]['start_year'])*12 + (today.getMonth() - config[lang]['start_month'] + 1)
+  loop_num = (today.getFullYear() - FAQGA4_config[lang]['start_year'])*12 + (today.getMonth() - FAQGA4_config[lang]['start_month'] + 1)
 
   console.log(Object.keys(faqs).length)
 
   let data_list = []
   for (month=0;month<=loop_num; month++) {
-    _month = (month + config[lang]['start_month'] - 1) % 12 + 1;
-    _year = config[lang]['start_year'] + Math.floor(((month + config[lang]['start_month']-1))/12)
+    _month = (month + FAQGA4_config[lang]['start_month'] - 1) % 12 + 1;
+    _year = FAQGA4_config[lang]['start_year'] + Math.floor(((month + FAQGA4_config[lang]['start_month']-1))/12)
     console.log(_getLastMonthDateRangeFromDate(_year, _month))
     _FAQ_CAT_DATA = []
     for (f_cnt=0; f_cnt<Object.keys(faqs).length; ++f_cnt) {
-      ret = getFAQenReport(propertyId=config[lang]['propertyId'], 
+      ret = getFAQenReport(propertyId=FAQGA4_config[lang]['propertyId'], 
         URLlist=faqs[Object.keys(faqs)[f_cnt]],
         dateRange=_getMonthDateRangeFromDate(_year, _month) )
       count = 0
@@ -164,7 +164,7 @@ function _GetFAQAllDataPeriod(lang="en", date_period_list) {
   api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
   api_getArticleFromID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetKnowledgeBaseArticle?searchText=&kbid="
 
-  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + config[lang]['category_num']).getContentText();
+  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + FAQGA4_config[lang]['category_num']).getContentText();
   _subcategories = JSON.parse(html)['SubCategories']
   SubCategoryIDs = []
   for (i =0; i< _subcategories.length; ++i) {
@@ -183,7 +183,7 @@ function _GetFAQAllDataPeriod(lang="en", date_period_list) {
 
   let data_list = []
   date_period_list.forEach (function (date_range) {
-    ret = getFAQenReport(propertyId=config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
+    ret = getFAQenReport(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
     ret = ret['rows']
     count = 0
     try {
@@ -257,7 +257,7 @@ function test_getFAQenReport(lang="en") {
 }
 //======================================================================
 
-function getFAQenReport(propertyId=config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
+function getFAQenReport(propertyId=FAQGA4_config['en']['propertyId'], URLlist=["https://en-support.renesas.com/knowledgeBase/20307725"], dateRange={ startDate: 2022-01-01, endDate: 2022-01-31}) {
   // const metric = {name: 'eventCount'};
   //const metric = {name: 'eventCount', expression: "ga:pageviews"};
   const metric = [{name: 'screenPageViews'}]; // page_viewの代わりらしい
@@ -290,7 +290,7 @@ function getFAQenReport(propertyId=config['en']['propertyId'], URLlist=["https:/
  * どこのページからアクセスしてきたか解析用のテスト関数
  */
 // ja版/knowledgeBase/20134171は、Yocto環境でkernel configを変更してビルドする方法。
-function getAccessFromDomain(propertyId=config['ja']['propertyId'],
+function getAccessFromDomain(propertyId=FAQGA4_config['ja']['propertyId'],
   URLlist=["https://ja-support.renesas.com/knowledgeBase/20134171"],
   dateRange={ startDate: "2022-01-01", endDate: "2022-01-31"}) 
 {
@@ -360,7 +360,7 @@ function _getLastMonthDateRange() { // () -> return { startDate: yyyy-mm-dd, end
 
 function _get_monthly_date_list(lang="en") {
   date_list = []
-  start_year = config[lang]['start_year']
+  start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
   current_year = today.getFullYear()
   loop_year = (current_year-start_year+1)
@@ -377,7 +377,7 @@ function _get_monthly_date_list(lang="en") {
 
 function _get_quaterly_date_list(lang="en") {
   date_list = []
-  start_year = config[lang]['start_year']
+  start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
   current_year = today.getFullYear()
   loop_year = (current_year-start_year+1)
@@ -399,7 +399,7 @@ function _get_quaterly_date_list(lang="en") {
 
 function _get_half_year_date_list(lang="en") {
   date_list = []
-  start_year = config[lang]['start_year']
+  start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
   current_year = today.getFullYear()
   loop_year = (current_year-start_year+1)
@@ -419,7 +419,7 @@ function _get_half_year_date_list(lang="en") {
 
 function _get_year_date_list(lang="en") {
   date_list = []
-  start_year = config[lang]['start_year']
+  start_year = FAQGA4_config[lang]['start_year']
   today = new Date();
   current_year = today.getFullYear()
   loop_year = (current_year-start_year+1)
