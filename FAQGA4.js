@@ -68,8 +68,8 @@ function FAQ_insertRecords(mySheetName, values){
   mySheet.getRange(row_offset, 1, numRows, numColumns).setValues(values);
 }
 
-function _GetFAQAllData(lang="en") {
-  let _header = ["date", "count"]
+function FAQ_getFAQList(lang="en") {
+  // faqs = { all: {}, category: {{}}}
   api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
   api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
 
@@ -80,12 +80,10 @@ function _GetFAQAllData(lang="en") {
   for (i =0; i< _subcategories.length; ++i) {
     SubCategoryIDs.push(_subcategories[i]['CategoryID'] )
     SubCategoryNames.push(_subcategories[i]['CategoryName'])
-    _header.push(_subcategories[i]['CategoryName'] )
   }
 
   faqURLs = []
-  faqCats = []
-  faqs = {}
+  faqs = {"all": [], "category":{},}
   for (loop=0; loop< SubCategoryIDs.length; ++loop) {
     let html = UrlFetchApp.fetch(api_getFaqFromSubCategoryID + SubCategoryIDs[loop]).getContentText();
     _faqs = JSON.parse(html)['Articles']
@@ -94,15 +92,23 @@ function _GetFAQAllData(lang="en") {
       _url = "https://"+lang+"-support.renesas.com/knowledgeBase/" + _faqs[n]['ArticleID']
       faqURLs.push(_url)
       _faq_list.push(_url)
-      faqCats.push(SubCategoryNames[n])
     }
-    faqs[SubCategoryIDs[loop]] = _faq_list
+    faqs["category"][SubCategoryNames[loop]] = _faq_list
   }
+  faqs["all"] = faqURLs;
+
+  return faqs;
+}
+
+function _GetFAQAllData(lang="en") {
+  let _header = ["date", "count"]
+  faqs = FAQ_getFAQList(lang)
+  _header.push(...Object.keys(faqs["category"]))
 
   today = new Date();
   loop_num = (today.getFullYear() - FAQGA4_config[lang]['start_year'])*12 + (today.getMonth() - FAQGA4_config[lang]['start_month'] + 1)
 
-  console.log(Object.keys(faqs).length)
+  console.log(Object.keys(faqs["category"]).length)
 
   let data_list = []
   for (month=0;month<=loop_num; month++) {
@@ -110,9 +116,9 @@ function _GetFAQAllData(lang="en") {
     _year = FAQGA4_config[lang]['start_year'] + Math.floor(((month + FAQGA4_config[lang]['start_month']-1))/12)
     console.log(_getLastMonthDateRangeFromDate(_year, _month))
     _FAQ_CAT_DATA = []
-    for (f_cnt=0; f_cnt<Object.keys(faqs).length; ++f_cnt) {
+    for (f_cnt=0; f_cnt<Object.keys(faqs["category"]).length; ++f_cnt) {
       ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], 
-        URLlist=faqs[Object.keys(faqs)[f_cnt]],
+        URLlist=faqs["category"][Object.keys(faqs["category"])[f_cnt]],
         dateRange=_getMonthDateRangeFromDate(_year, _month) )
       count = 0
       try{
@@ -143,27 +149,11 @@ function _GetFAQAllData(lang="en") {
 //======================================================================
 function _GetFAQAllDataPeriod(lang="en", date_period_list) {
   const _header = FAQGA4_config["other"]["ranking_sheet_header"]
-  api_getSubCategoryFromCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetCategoryContent?categoryID="
-  api_getFaqFromSubCategoryID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetSubCategoryContent?subcategoryID="
   api_getArticleFromID = "https://"+lang+"-support.renesas.com/api/KnowledgeBase/GetKnowledgeBaseArticle?searchText=&kbid="
-
-  let html = UrlFetchApp.fetch(api_getSubCategoryFromCategoryID + FAQGA4_config[lang]['category_num']).getContentText();
-  _subcategories = JSON.parse(html)['SubCategories']
-  SubCategoryIDs = []
-  for (i =0; i< _subcategories.length; ++i) {
-    SubCategoryIDs.push(_subcategories[i]['CategoryID'] )
-  }
-
-  faqURLs = []
-  for (loop=0; loop< SubCategoryIDs.length; ++loop) {
-    let html = UrlFetchApp.fetch(api_getFaqFromSubCategoryID + SubCategoryIDs[loop]).getContentText();
-    _faqs = JSON.parse(html)['Articles']
-    for (n=0; n<_faqs.length;++n){
-      _url = "https://"+lang+"-support.renesas.com/knowledgeBase/" + _faqs[n]['ArticleID']
-      faqURLs.push(_url)
-    }
-  }
-
+  
+  faqs = FAQ_getFAQList(lang)
+  faqURLs = faqs["all"]
+  
   let data_list = []
   date_period_list.forEach (function (date_range) {
     ret = _getFAQReportFromGA4(propertyId=FAQGA4_config[lang]['propertyId'], URLlist=faqURLs, dateRange=date_range )
