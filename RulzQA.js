@@ -1,30 +1,36 @@
-// ================================================
-// Dependency
-// ================================================
-/*
-  Parser: 1Mc8BthYthXx6CoIz90-JiSzSafVnT6U3t0z_W3hLTAX5ek4w0G_EIrNw
-  common.gsへの依存は無し。
+/**
+ * Dependencies
+ *   Parser: 1Mc8BthYthXx6CoIz90-JiSzSafVnT6U3t0z_W3hLTAX5ek4w0G_EIrNw
+ *   common.gsへの依存は無し。
 */
 
-// ================================================
-// Global variable
-// ================================================
-var site_domain = "https://community.renesas.com/"
-var g_forum_url = "https://community.renesas.com/automotive/gateway/f/forum"
-var g_forum_list = "https://community.renesas.com/automotive/gateway/f"
-var g_group_name = "R-Car S4 (Gateway)"
-var g_sheet_name = "RulzQA"
-const g_question_per_page = 20 // 1ページ当たりのQ&Aの表示数。Webの大幅更新がない限りは修正不要。
+/**
+ * Global Variable
+ */
 
-TAG_LIST = [ "SK-", "KF-", "3-" ]
-function GetQAinfoFromWebPage(forum_url=g_forum_url) {
+forum_config = {
+  en: {
+    toppage_url: "https://community.renesas.com/",
+    forum_list_url: "https://community.renesas.com/automotive/gateway/f",
+    question_per_page: 20,
+    target_forum_url: "https://community.renesas.com/automotive/gateway/f/forum",
+    target_group: "R-Car S4 (Gateway)",
+    target_sheet_name: "RulzQA",
+  },
+  ja: {}, // ForumのJP版は存在しない
+}
 
+/**
+ * Trigger Function
+ */
+function GetQAinfoFromWebPage(forum_url=forum_config["en"]["target_forum_url"], sheet_name = forum_config["en"]["target_sheet_name"]) {
+  TAG_LIST = [ "SK-", "KF-", "3-" ]
+  sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"]
 
   if(forum_url == "")
-    forum_url=g_forum_url;
-  if(forum_url != g_forum_url)
-    forum_url=g_forum_url;
-  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_url)
+    forum_url = forum_config["en"]["target_forum_url"];
+
+  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_url, forum_config["en"]["forum_list_url"])
   let html = UrlFetchApp.fetch(forum_url).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
@@ -32,7 +38,7 @@ function GetQAinfoFromWebPage(forum_url=g_forum_url) {
   //url_base = forum_url + '?' +
   //  Parser.data(html).from(from_str).to('" class="next"').build().replace("=2", "=")
 
-  page_num = 1 + Math.floor(discussion_count / g_question_per_page)
+  page_num = 1 + Math.floor(discussion_count / forum_config["en"]["question_per_page"])
   console.log(discussion_count, page_num)
 
   let urls = [];
@@ -49,9 +55,9 @@ function GetQAinfoFromWebPage(forum_url=g_forum_url) {
     }
   }
 
-  /** 各QAの情報を取得 */
+  /** 各QAの情報を取得 -> data_listへ格納 */
   data_list = []
-  data_list.push([ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"])
+  data_list.push(sheet_headers)
   url_counter = 1
   urls.forEach(function(url){
     console.log("Get TAGs: ", url_counter, "/", urls.length); url_counter += 1
@@ -72,7 +78,7 @@ function GetQAinfoFromWebPage(forum_url=g_forum_url) {
     /* Gen4ではTAGはひとまず扱わない予定
     for (c=0; c<categories_list.length; ++c) {
       for (t=0; t<TAG_LIST.length; ++t) {
-        if ( categories_list[c].indexOf(site_domain) != -1) {
+        if ( categories_list[c].indexOf(forum_config["en"]["toppage_url"]) != -1) {
           break;
         }
         else if (categories_list[c].indexOf(TAG_LIST[t]) != -1) {
@@ -85,11 +91,11 @@ function GetQAinfoFromWebPage(forum_url=g_forum_url) {
     data_list.push([url, categories, tag, author, open_date]);
   })
   /** Sheetに転記 */
-  const sheet_name = g_sheet_name;
+  if(sheet_name == "")
+    sheet_name = forum_config["en"]["target_sheet_name"]
   const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheet_name)
   mySheet.clear();
   mySheet.getRange(1, 1, data_list.length, data_list[0].length).setValues(data_list)
-
 }
 
 // ==================================================================
@@ -99,7 +105,7 @@ function GetQAinfoFromWebPage(forum_url=g_forum_url) {
  * _GetForumQuestionCountFromForumListPage()
  *   Description: Get Question count of specific forum.
  */
-function _GetForumQuestionCountFromForumListPage(target_forum_url=g_forum_url, forum_list_url=g_forum_list) {
+function _GetForumQuestionCountFromForumListPage(target_forum_url=forum_config["en"]["target_forum_url"], forum_list_url=forum_config["en"]["forum_list_url"]) {
   // For debug
   //forum_list_url = "https://community.renesas.com/automotive/r-car-h3-m3-cockpit/f";
   
