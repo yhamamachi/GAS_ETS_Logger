@@ -217,4 +217,20 @@ function RulzScrape_GetDate() {
   console.log(date_D);
   return date_D
 }
+
+function RulzScrape_insertRecords(mySheetName, values){
+  const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(mySheetName)
+  const numRows = values.length;
+  const numColumns = values[1].length;
+  const row_offset = 1 // When skip first row, start 2.
+  mySheet.insertRows(row_offset,numRows);
+  mySheet.getRange(row_offset, 1, numRows, numColumns).setValues(values);
+
+  /** Remove duplicated row */
+  const maxrow = mySheet.getLastRow();
+  const maxcol = mySheet.getLastColumn();
+  const cells = mySheet.getRange(1,1,maxrow, maxcol)
+  cells.removeDuplicates([1]); // 1=A row, 2=B row
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
