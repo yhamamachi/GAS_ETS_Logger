@@ -146,6 +146,36 @@ function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
   return urls
 }
 
+/*
+ * RulzScrape_GetClosedDiscussion()
+ *   Description: Get closed discussion(Q&A) count from forum page.
+ */
+function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
+  const forum_url = _forum_config['en']["target_forum_url"]
+  const question_per_page = _forum_config["en"]["question_per_page"]
+  const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
+  const page_num = 1 + Math.floor(discussion_count / question_per_page)
+
+  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
+  url_base = forum_url + '?' +
+    Parser.data(html).from(from_str).to('"').build() + "="
+  if (page_num == 1) url_base = forum_url + "?dummy="
+
+  let closed = 0
+  for (i=1; i<=page_num; i++) {
+    let url = url_base + i
+    let html = UrlFetchApp.fetch(url).getContentText();
+
+    // discussion info
+    from_str = 'data-answertype="verified-answers"'
+    to_str = '</span>'
+    closed += Parser.data(html).from(from_str).to(to_str).iterate().length
+  }
+  console.log(closed)
+  return closed
+}
+
 function RulzScrape_GetDate() {
   const date = new Date();
   var date_D = new Date(date.getFullYear(),date.getMonth(),date.getDate(),0,0,0); //日付を取り出す
