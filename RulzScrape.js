@@ -145,4 +145,12 @@ function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
   console.log(urls)
   return urls
 }
+
+function RulzScrape_GetDate() {
+  const date = new Date();
+  var date_D = new Date(date.getFullYear(),date.getMonth(),date.getDate(),0,0,0); //日付を取り出す
+  date_D = Utilities.formatDate(date, "JST", "yyyy/MM/dd")
+  console.log(date_D);
+  return date_D
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
