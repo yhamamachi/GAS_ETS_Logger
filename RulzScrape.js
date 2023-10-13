@@ -16,6 +16,7 @@ forum_config = {
     target_forum_url: "https://community.renesas.com/automotive/gateway/f/forum",
     target_group: "R-Car S4 (Gateway)",
     target_sheet_name: "RulzQA",
+    scrape_sheet_name: "RulzForum",
   },
   ja: {}, // ForumのJP版は存在しない
 }
@@ -69,6 +70,26 @@ function GetQAinfoFromWebPage(_forum_config=forum_config) {
   const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheet_name)
   mySheet.clear();
   mySheet.getRange(1, 1, data_list.length, data_list[0].length).setValues(data_list)
+}
+
+function RulzScrape_GetForumData_Daily(_forum_config=forum_config) {
+  const date = RulzScrape_GetDate()
+  const member = RulzScrape_GetMemberFromWebPage(_forum_config)
+  const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
+  const closed_count = RulzScrape_GetClosedDiscussion(_forum_config)
+  const closed_ratio = Math.floor(100*closed_count/discussion_count) + "%"
+  const replies = RulzScrape_GetRepliesCount(_forum_config)
+  const views = 0 // placeholder
+  
+  const data_list = [
+    ["date", "Member Count", "Discussion Count", "Closed Count", "Closed ratio", "replies", "views"],
+    [date, member, discussion_count, closed_count, closed_ratio, replies, views],
+  ]
+
+
+  /** Sheetに転記 */
+  sheet_name = _forum_config["en"]["scrape_sheet_name"]
+  RulzScrape_insertRecords(sheet_name, data_list)
 }
 
 // ==================================================================

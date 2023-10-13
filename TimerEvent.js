@@ -4,7 +4,7 @@
  */
 
 function TimerEventDaily() {
-
+    RulzScrape_GetForumData_Daily()
 }
 
 function TimerEventWeekly() {
