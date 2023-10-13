@@ -119,4 +119,23 @@ function _GetForumQuestionCountFromForumListPage(_forum_config=forum_config) {
   console.log(question_count)
   return question_count;
 }
+
+/*
+ * RulzScrape_GetMemberFromWebPage()
+ *   Description: Get Group member count.
+ */
+function RulzScrape_GetMemberFromWebPage(_forum_config=forum_config) {
+  url = _forum_config["en"]["toppage_url"] + "/automotive/subgrouplist"
+  let member = -1
+
+  let html = UrlFetchApp.fetch(url).getContentText();
+  const search_str_start = _forum_config["en"]["target_group"] // for member count
+  const search_str_end = 'members' // for member count
+  let _member = Parser.data(html).from(search_str_start).to(search_str_end).build() // extract required block
+  _member = Parser.data(_member).from("ago</time><br />").to(" ").build() // extract member count
+  member = parseInt(_member) // convert to integer
+  console.log(member);
+  return member;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
