@@ -176,6 +176,40 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
   return closed
 }
 
+/*
+ * RulzScrape_GetRepliesCount()
+ *   Description: Get replies count from forum page.
+ */
+function RulzScrape_GetRepliesCount(_forum_config=forum_config) {
+  const forum_url = _forum_config['en']["target_forum_url"]
+  const question_per_page = _forum_config["en"]["question_per_page"]
+  const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
+  const page_num = 1 + Math.floor(discussion_count / question_per_page)
+
+  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
+  url_base = forum_url + '?' +
+    Parser.data(html).from(from_str).to('"').build() + "="
+  if (page_num == 1) url_base = forum_url + "?dummy="
+
+  let replies = 0
+  for (i=1; i<=page_num; i++) {
+    let url = url_base + i
+    let html = UrlFetchApp.fetch(url).getContentText();
+
+    // views replies
+    from_str = '<span class="value">'
+    to_str = '</span>'
+    values = Parser.data(html).from(from_str).to(to_str).iterate()
+    loop = values.length / 3
+    for(n=0; n<loop; n++) {
+      replies += Number(values[n*3+1])
+    }
+  }
+  console.log(replies)
+  return replies
+}
+
 function RulzScrape_GetDate() {
   const date = new Date();
   var date_D = new Date(date.getFullYear(),date.getMonth(),date.getDate(),0,0,0); //日付を取り出す
