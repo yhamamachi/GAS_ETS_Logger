@@ -27,31 +27,7 @@ function GetQAinfoFromWebPage(_forum_config=forum_config) {
   TAG_LIST = [ "SK-", "KF-", "3-" ]
   sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"]
   const forum_url = _forum_config["en"]["target_forum_url"];
-
-  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_config)
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
-  from_str = 'data-pagekey="'
-  url_base = forum_url + '?' +
-    Parser.data(html).from(from_str).to('"').build() + "="
-  //url_base = forum_url + '?' +
-  //  Parser.data(html).from(from_str).to('" class="next"').build().replace("=2", "=")
-
-  page_num = 1 + Math.floor(discussion_count / forum_config["en"]["question_per_page"])
-  console.log(discussion_count, page_num)
-
-  let urls = [];
-  for (i=1; i<=page_num; i++) {
-    let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
-    console.log("Get URLs: ", i, "/", page_num)
-    // views Q&A link(split block with h2 tag)
-    from_str = '<h2>'; to_str = '</h2>'
-    blocks = Parser.data(html).from(from_str).to(to_str).iterate()
-    loop = blocks.length
-    for(n=0; n<loop; n++) {
-      urls.push( blocks[n].split('"')[1] )
-    }
-  }
+  const urls = RulzScrape_GetDiscussionList(_forum_config)
 
   /** 各QAの情報を取得 -> data_listへ格納 */
   data_list = []
@@ -138,4 +114,35 @@ function RulzScrape_GetMemberFromWebPage(_forum_config=forum_config) {
   return member;
 }
 
+/*
+ * RulzScrape_GetDiscussionList()
+ *   Description: Get posted discussion(Q&A) count from forum page.
+ */
+function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
+  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_config)
+  const forum_url = _forum_config["en"]["target_forum_url"]
+  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  from_str = 'data-pagekey="'
+  url_base = forum_url + '?' +
+    Parser.data(html).from(from_str).to('"').build() + "="
+
+  page_num = 1 + Math.floor(discussion_count / _forum_config["en"]["question_per_page"])
+  console.log(discussion_count, page_num)
+
+  let urls = [];
+  for (i=1; i<=page_num; i++) {
+    let url = url_base + i
+    let html = UrlFetchApp.fetch(url).getContentText();
+    console.log("Get URLs: ", i, "/", page_num)
+    // views Q&A link(split block with h2 tag)
+    from_str = '<h2>'; to_str = '</h2>'
+    blocks = Parser.data(html).from(from_str).to(to_str).iterate()
+    loop = blocks.length
+    for(n=0; n<loop; n++) {
+      urls.push( blocks[n].split('"')[1] )
+    }
+  }
+  console.log(urls)
+  return urls
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
