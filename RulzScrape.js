@@ -23,14 +23,12 @@ forum_config = {
 /**
  * Trigger Function
  */
-function GetQAinfoFromWebPage(forum_url=forum_config["en"]["target_forum_url"], sheet_name = forum_config["en"]["target_sheet_name"]) {
+function GetQAinfoFromWebPage(_forum_config=forum_config) {
   TAG_LIST = [ "SK-", "KF-", "3-" ]
   sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"]
+  const forum_url = _forum_config["en"]["target_forum_url"];
 
-  if(forum_url == "")
-    forum_url = forum_config["en"]["target_forum_url"];
-
-  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_url, forum_config["en"]["forum_list_url"])
+  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_config)
   let html = UrlFetchApp.fetch(forum_url).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
@@ -91,8 +89,7 @@ function GetQAinfoFromWebPage(forum_url=forum_config["en"]["target_forum_url"], 
     data_list.push([url, categories, tag, author, open_date]);
   })
   /** Sheetに転記 */
-  if(sheet_name == "")
-    sheet_name = forum_config["en"]["target_sheet_name"]
+  sheet_name = _forum_config["en"]["target_sheet_name"]
   const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheet_name)
   mySheet.clear();
   mySheet.getRange(1, 1, data_list.length, data_list[0].length).setValues(data_list)
@@ -105,17 +102,17 @@ function GetQAinfoFromWebPage(forum_url=forum_config["en"]["target_forum_url"], 
  * _GetForumQuestionCountFromForumListPage()
  *   Description: Get Question count of specific forum.
  */
-function _GetForumQuestionCountFromForumListPage(target_forum_url=forum_config["en"]["target_forum_url"], forum_list_url=forum_config["en"]["forum_list_url"]) {
+function _GetForumQuestionCountFromForumListPage(_forum_config=forum_config) {
   // For debug
   //forum_list_url = "https://community.renesas.com/automotive/r-car-h3-m3-cockpit/f";
   
   let question_count = -1;
-  let html = UrlFetchApp.fetch(forum_list_url).getContentText();
+  let html = UrlFetchApp.fetch(_forum_config["en"]["forum_list_url"]).getContentText();
   _forum_list = Parser.data(html).from('<li class="content-item with-href"').to('<div class="minimal cell nowrap latest metadata">').iterate()
   _forum_list.forEach(function(forum){
     forum_link = Parser.data(forum).from('data-href="').to('">').build()
     console.log(forum_link)
-    if (forum_link == target_forum_url ){
+    if (forum_link == _forum_config["en"]["target_forum_url"] ){
       question_count = Parser.data(forum).from('<span class="value">').to('</span>').build();
     }
   })
