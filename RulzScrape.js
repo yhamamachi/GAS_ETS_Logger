@@ -75,10 +75,10 @@ function GetQAinfoFromWebPage(_forum_config=forum_config) {
 // その他関数
 // ==================================================================
 /*
- * _GetForumQuestionCountFromForumListPage()
+ * RulzScrape_GetForumQuestionCountFromForumListPage()
  *   Description: Get Question count of specific forum.
  */
-function _GetForumQuestionCountFromForumListPage(_forum_config=forum_config) {
+function RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config=forum_config) {
   // For debug
   //forum_list_url = "https://community.renesas.com/automotive/r-car-h3-m3-cockpit/f";
   
@@ -119,7 +119,7 @@ function RulzScrape_GetMemberFromWebPage(_forum_config=forum_config) {
  *   Description: Get posted discussion(Q&A) count from forum page.
  */
 function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
-  const discussion_count = _GetForumQuestionCountFromForumListPage(forum_config)
+  const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(forum_config)
   const forum_url = _forum_config["en"]["target_forum_url"]
   let html = UrlFetchApp.fetch(forum_url).getContentText();
   from_str = 'data-pagekey="'
