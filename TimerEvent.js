@@ -18,5 +18,6 @@ function TimerEventWeekly() {
 
 function TimerEventMonthly() {
     RulzGA4_ReportMonthly()
+    GenerateSlide_generateSlide()
 }
 
