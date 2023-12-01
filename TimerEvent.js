@@ -9,6 +9,7 @@ function TimerEventDaily() {
 }
 
 function TimerEventWeekly() {
+    RulzFollowUp_RulzSendFollowUpMail()
     RulzScrape_GetQAinfoFromWebPage()
     FAQ_ranking()
     FAQ_Logger()
