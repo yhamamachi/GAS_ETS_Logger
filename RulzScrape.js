@@ -24,7 +24,7 @@ forum_config = {
 /**
  * Trigger Function
  */
-function GetQAinfoFromWebPage(_forum_config=forum_config) {
+function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
   TAG_LIST = [ "SK-", "KF-", "3-" ]
   sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"]
   const forum_url = _forum_config["en"]["target_forum_url"];

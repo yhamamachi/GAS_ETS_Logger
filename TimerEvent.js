@@ -8,7 +8,7 @@ function TimerEventDaily() {
 }
 
 function TimerEventWeekly() {
-    GetQAinfoFromWebPage()
+    RulzScrape_GetQAinfoFromWebPage()
     FAQ_ranking()
     FAQ_Logger()
     FAQ_AccessDomainData()
