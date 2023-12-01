@@ -17,6 +17,7 @@ forum_config = {
     target_group: "R-Car S4 (Gateway)",
     target_sheet_name: "RulzQA",
     scrape_sheet_name: "RulzForum",
+    reply_sheet_name: "RulzReply",
   },
   ja: {}, // ForumのJP版は存在しない
 }
@@ -90,6 +91,29 @@ function RulzScrape_GetForumData_Daily(_forum_config=forum_config) {
   /** Sheetに転記 */
   sheet_name = _forum_config["en"]["scrape_sheet_name"]
   RulzScrape_insertRecords(sheet_name, data_list)
+}
+
+function RulzScrape_GetReplyData_Daily(_forum_config=forum_config) {
+  const forum_url = _forum_config["en"]["target_forum_url"];
+  const urls = RulzScrape_GetDiscussionList(_forum_config)
+  sheet_headers = [ 'Q&A URL', 'Reply date', 'Author']
+
+  /** 各QAの情報を取得 -> data_listへ格納 */
+  data_list = []
+  data_list.push(sheet_headers)
+  urls.forEach(function(url){
+    const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
+    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+
+    for (let n=0; n<_data.length; ++n) {
+      var _insert_data = [url, ..._data[n]]
+      data_list.push(_insert_data)
+    }
+  });
+
+  /** Sheetに転記 */
+  sheet_name = _forum_config["en"]["reply_sheet_name"]
+  RulzScrape_updateSheet(sheet_name, data_list)
 }
 
 // ==================================================================
@@ -252,6 +276,76 @@ function RulzScrape_insertRecords(mySheetName, values){
   const maxcol = mySheet.getLastColumn();
   const cells = mySheet.getRange(1,1,maxrow, maxcol)
   cells.removeDuplicates([1]); // 1=A row, 2=B row
+}
+
+/**
+ * RulzScrape_updateSheet(mySheetName, values)
+ *   Delete all contents on 'mySheetName', then write 'values'.
+ */
+function RulzScrape_updateSheet(mySheetName, values){
+  const mySheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(mySheetName)
+  mySheet.clear();
+  const numRows = values.length;
+  const numColumns = values[1].length;
+  const row_offset = 1 // When skip first row, start 2.
+  mySheet.insertRows(row_offset,numRows);
+  mySheet.getRange(row_offset, 1, numRows, numColumns).setValues(values);
+}
+
+
+function RulzScrape_GetJsonLinkFromURL(url) {
+  let html = UrlFetchApp.fetch(url).getContentText();
+  // listRepliesUrl
+  from_str = "listRepliesUrl: '"; to_str = "',"
+  url_base = Parser.data(html).from(from_str).to(to_str).build().replace(/\\u0026/g,"&")
+  // forumId
+  from_str = "forumId: "; to_str = " ,"
+  forumId = Parser.data(html).from(from_str).to(to_str).build()
+  // threadId
+  from_str = "threadId: "; to_str = " }"
+  threadId = Parser.data(html).from(from_str).to(to_str).build()
+
+  // Generate URL
+  json_url = url_base + "&_w_forumId=" + forumId + "&_w_threadId=" + threadId
+  console.log(json_url)
+
+  return json_url;
+}
+
+function RulzScrape__GetReplyInfoFromJson(json_url) {
+  console.log(json_url)
+  let html = UrlFetchApp.fetch(json_url).getContentText();
+
+  from_str = '0px\\" alt=\\"'; to_str = '\\" '
+  authors = Parser.data(html).from(from_str).to(to_str).iterate()
+  console.log(authors)
+
+  from_str = 'createdDate":  "'; to_str = 'T'
+  createDates = Parser.data(html).from(from_str).to(to_str).iterate()
+  console.log(createDates)
+
+  let data_list = []
+  for (let i=0; i<authors.length; i++){
+    if ( createDates[i].trim() !== '' && authors[i].trim() !== '') {
+      data_list.push([createDates[i], authors[i]])
+    }
+  }
+
+  // Check remain replies
+  from_str = 'NextSiblingCount":  '; to_str = ' ,'
+  remain_replies = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
+  console.log(remain_replies)
+  if( isNaN(remain_replies) == false && remain_replies != 0) {
+    // Get Last replay's Id
+    from_str = '"id": "'; to_str = '",'
+    last_reply_id = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
+    console.log("last_reply_id:", last_reply_id)
+    const new_json_url = json_url + "&_w_flattenedDepth=0&_w_startReplyId=" + last_reply_id
+    const tmp_data_list = _GetReplyInfoFromJson(new_json_url)
+    data_list.push(...tmp_data_list)
+  }
+  console.log()
+  return data_list;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
