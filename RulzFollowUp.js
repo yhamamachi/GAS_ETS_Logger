@@ -54,7 +54,7 @@ function RulzFollowUp_generateMailBody(results) {
   ret = "現在、未クローズのQ&Aは " + opened_count　+" 件です" + "\n\n"
   results.forEach(function (val, index){
     next_action = "回答が必要です"
-    if( val[2].match("[Renesas]") ){
+    if( val[2].match("Renesas") ){
       next_action = "リプライ待ち or クローズ待ち です"
     }
 
