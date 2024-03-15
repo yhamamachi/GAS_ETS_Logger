@@ -113,7 +113,8 @@ function RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config) {
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
 
-  page_num = 1 + Math.floor(discussion_count / question_per_page)
+  page_num = Math.ceil(discussion_count / question_per_page)
+
   console.log(discussion_count, page_num)
 
   // page_num = 1; // FOR DEBUG
