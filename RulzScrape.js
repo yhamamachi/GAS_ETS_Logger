@@ -171,7 +171,7 @@ function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
 
-  page_num = 1 + Math.floor(discussion_count / _forum_config["en"]["question_per_page"])
+  page_num = Math.ceil(discussion_count / _forum_config["en"]["question_per_page"])
   console.log(discussion_count, page_num)
 
   let urls = [];
@@ -199,7 +199,7 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
   const forum_url = _forum_config['en']["target_forum_url"]
   const question_per_page = _forum_config["en"]["question_per_page"]
   const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
-  const page_num = 1 + Math.floor(discussion_count / question_per_page)
+  const page_num = Math.ceil(discussion_count / question_per_page)
 
   let html = UrlFetchApp.fetch(forum_url).getContentText();
   from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
@@ -229,7 +229,7 @@ function RulzScrape_GetRepliesCount(_forum_config=forum_config) {
   const forum_url = _forum_config['en']["target_forum_url"]
   const question_per_page = _forum_config["en"]["question_per_page"]
   const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
-  const page_num = 1 + Math.floor(discussion_count / question_per_page)
+  const page_num = Math.ceil(discussion_count / question_per_page)
 
   let html = UrlFetchApp.fetch(forum_url).getContentText();
   from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
