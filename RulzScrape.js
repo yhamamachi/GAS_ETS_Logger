@@ -27,7 +27,7 @@ forum_config = {
  */
 function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
   TAG_LIST = [ "SK-", "KF-", "3-" ]
-  sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE", "CLOSE_STATE"]
+  sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE", "CLOSE_STATE", "CATEGORY"]
   const forum_url = _forum_config["en"]["target_forum_url"];
   const urls = RulzScrape_GetDiscussionList(_forum_config)
 
@@ -52,6 +52,16 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
     from_str = '<li class="attribute-item state'; to_str = '">'
     close_state = Parser.data(html).from(from_str).to(to_str).build()
     close_state = close_state.replace(/ /g,"").replace(/	/g,"").replace(/verified/g,"closed")
+    // Y.H. answered = WB related
+    const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
+    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+    category = "other";
+    for (let n=0; n<_data.length; ++n) {
+      if(_data[n][1].match('Y.H.')) { // _data[n] = [date, reply_author]
+        category = "WB"
+        break;
+      }
+    }
 
     // TAG(処理結果)
     tag = "No-TAG"
@@ -69,7 +79,7 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
       }
     }
     */
-    data_list.push([url, categories, tag, author, open_date, close_state]);
+    data_list.push([url, categories, tag, author, open_date, close_state, category]);
   })
   /** Sheetに転記 */
   sheet_name = _forum_config["en"]["target_sheet_name"]
