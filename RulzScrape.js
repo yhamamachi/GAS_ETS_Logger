@@ -27,7 +27,7 @@ forum_config = {
  */
 function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
   TAG_LIST = [ "SK-", "KF-", "3-" ]
-  sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE"]
+  sheet_headers = [ 'URL', 'RAW_TAG', 'TAG', 'AUTHOR', "OPEN_DATE", "CLOSE_STATE"]
   const forum_url = _forum_config["en"]["target_forum_url"];
   const urls = RulzScrape_GetDiscussionList(_forum_config)
 
@@ -48,6 +48,11 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
     // OpenDate
     from_str = 'data-dateutc="'; to_str = 'T'
     open_date = Parser.data(html).from(from_str).to(to_str).build()
+    // Close State
+    from_str = '<li class="attribute-item state'; to_str = '">'
+    close_state = Parser.data(html).from(from_str).to(to_str).build()
+    close_state = close_state.replace(/ /g,"").replace(/	/g,"").replace(/verified/g,"closed")
+
     // TAG(処理結果)
     tag = "No-TAG"
     categories_list = categories.split(', ')
@@ -64,7 +69,7 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
       }
     }
     */
-    data_list.push([url, categories, tag, author, open_date]);
+    data_list.push([url, categories, tag, author, open_date, close_state]);
   })
   /** Sheetに転記 */
   sheet_name = _forum_config["en"]["target_sheet_name"]
