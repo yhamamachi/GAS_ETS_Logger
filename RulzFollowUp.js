@@ -28,7 +28,8 @@ var g_debugFlag = false
 function RulzFollowUp_RulzSendFollowUpMail(_forum_config=forum_config){
   q_list = RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config)
   mail_subject = "[Rulz Follow up]"+ "今週のRulz状況 for " + _forum_config['en']['target_group'];
-  mail_body = RulzFollowUp_generateMailBody(q_list)
+  mail_body = RulzFollowUp_GetWhiteboxStatistics(forum_config)
+  mail_body += RulzFollowUp_generateMailBody(q_list)
   RulzFollowUp_sendMail(mail_subject, mail_body, g_debugFlag)
 }
 
@@ -169,4 +170,141 @@ function RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config) {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function RulzFollowUp_GetWhiteboxStatistics(_forum_config=forum_config) {
+  const urls = RulzFollowUp_GetDiscussionList(_forum_config)
 
+  /** 各QAの情報を取得 -> data_listへ格納 */
+  data_list = []
+  url_counter = 1
+  urls.forEach(function(url){
+    console.log("Get TAGs: ", url_counter, "/", urls.length); url_counter += 1
+    let html = UrlFetchApp.fetch(url).getContentText();
+    // OpenDate
+    from_str = 'data-dateutc="'; to_str = 'T'
+    open_date = Parser.data(html).from(from_str).to(to_str).build()
+    // Close State
+    from_str = '<li class="attribute-item state'; to_str = '">'
+    close_state = Parser.data(html).from(from_str).to(to_str).build()
+    close_state = close_state.replace(/ /g,"").replace(/	/g,"").replace(/verified/g,"closed")
+    // Category: Y.H. answered = WB related
+    const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
+    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+    category = "other";
+    for (let n=0; n<_data.length; ++n) {
+      if(_data[n][1].match('Y.H.')) { // _data[n] = [date, reply_author]
+        category = "WB"; break;
+      }
+    }
+    data_list.push([open_date, close_state, category]);
+  })
+  /** 結果の生成 */
+  // WB categoryだけの配列を生成
+  console.log(data_list)
+  data_list_wb = data_list.filter(row => {
+    if(row[2].match("WB")) return true;
+    else return false;
+  });
+  // 
+  const fullYear = new Date().getFullYear();
+  // 全体
+  g_total = data_list.length
+  g_closed = data_list.filter(row => row[1].match("closed")).length
+  y_g_total = data_list.filter(row => row[0].match(fullYear)).length
+  y_g_closed = data_list.filter(row => row[0].match(fullYear)).filter(row => row[1].match("closed")).length
+
+  // WB
+  total = data_list_wb.length
+  closed = data_list_wb.filter(row => row[1].match("closed")).length
+  y_total = data_list_wb.filter(row => row[0].match(fullYear)).length
+  y_closed = data_list_wb.filter(row => row[0].match(fullYear)).filter(row => row[1].match("closed")).length
+
+  // generate mail body
+  ret = ""
+  ret +="---------------------------------" + "\n"  
+  ret +="Gateway Group support状況\n"
+  ret +="年内("+fullYear+")\n"
+  ret +="  total: "+y_g_total+", closed: "+y_g_closed+", wip: "+(y_g_total-y_g_closed)+"\n"
+  ret +="累計\n"
+  ret +="  total: "+g_total+", closed: "+g_closed+", wip: "+(g_total-g_closed)+"\n"
+  ret +="---------------------------------" + "\n"  
+  ret +="Whitebox SDK support状況\n"
+  ret +="年内("+fullYear+")\n"
+  ret +="  total: "+y_total+", closed: "+y_closed+", wip: "+(y_total-y_closed)+"\n"
+  ret +="累計\n"
+  ret +="  total: "+total+", closed: "+closed+", wip: "+(total-closed)+"\n"
+  ret +="---------------------------------" + "\n"  
+  ret +="\n"
+
+  return ret
+}
+
+function RulzFollowUp_GetDiscussionList(_forum_config=forum_config) {
+  const discussion_count = RulzFollowUp_GetForumQuestionCountFromForumListPage(forum_config)
+  const forum_url = _forum_config["en"]["target_forum_url"]
+  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  from_str = 'data-pagekey="'
+  url_base = forum_url + '?' +
+    Parser.data(html).from(from_str).to('"').build() + "="
+  page_num = Math.ceil(discussion_count / _forum_config["en"]["question_per_page"])
+
+  let urls = [];
+  for (i=1; i<=page_num; i++) {
+    let url = url_base + i
+    let html = UrlFetchApp.fetch(url).getContentText();
+    from_str = '<h2>'; to_str = '</h2>'
+    blocks = Parser.data(html).from(from_str).to(to_str).iterate()
+    loop = blocks.length
+    for(n=0; n<loop; n++) {
+      urls.push( blocks[n].split('"')[1] )
+    }
+  }
+  return urls
+}
+
+function RulzFollowUp_GetJsonLinkFromURL(url) {
+  let html = UrlFetchApp.fetch(url).getContentText();
+  // listRepliesUrl
+  from_str = "listRepliesUrl: '"; to_str = "',"
+  url_base = Parser.data(html).from(from_str).to(to_str).build().replace(/\\u0026/g,"&")
+  // forumId
+  from_str = "forumId: "; to_str = " ,"
+  forumId = Parser.data(html).from(from_str).to(to_str).build()
+  // threadId
+  from_str = "threadId: "; to_str = " }"
+  threadId = Parser.data(html).from(from_str).to(to_str).build()
+
+  // Generate URL
+  json_url = url_base + "&_w_forumId=" + forumId + "&_w_threadId=" + threadId
+
+  return json_url;
+}
+
+function RulzFollowUp_GetReplyInfoFromJson(json_url) {
+  let html = UrlFetchApp.fetch(json_url).getContentText();
+
+  from_str = '0px\\" alt=\\"'; to_str = '\\" '
+  authors = Parser.data(html).from(from_str).to(to_str).iterate()
+
+  from_str = 'createdDate":  "'; to_str = 'T'
+  createDates = Parser.data(html).from(from_str).to(to_str).iterate()
+
+  let data_list = []
+  for (let i=0; i<authors.length; i++){
+    if ( createDates[i].trim() !== '' && authors[i].trim() !== '') {
+      data_list.push([createDates[i], authors[i]])
+    }
+  }
+
+  // Check remain replies
+  from_str = 'NextSiblingCount":  '; to_str = ' ,'
+  remain_replies = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
+  if( isNaN(remain_replies) == false && remain_replies != 0) {
+    // Get Last replay's Id
+    from_str = '"id": "'; to_str = '",'
+    last_reply_id = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
+    const new_json_url = json_url + "&_w_flattenedDepth=0&_w_startReplyId=" + last_reply_id
+    const tmp_data_list = _GetReplyInfoFromJson(new_json_url)
+    data_list.push(...tmp_data_list)
+  }
+  return data_list;
+}
