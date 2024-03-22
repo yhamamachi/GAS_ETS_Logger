@@ -217,10 +217,9 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
   const page_num = Math.ceil(discussion_count / question_per_page)
 
   let html = UrlFetchApp.fetch(forum_url).getContentText();
-  from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
+  from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
-  if (page_num == 1) url_base = forum_url + "?dummy="
 
   let closed = 0
   for (i=1; i<=page_num; i++) {
@@ -228,9 +227,10 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
     let html = UrlFetchApp.fetch(url).getContentText();
 
     // discussion info
-    from_str = 'data-answertype="verified-answers"'
+    from_str = 'answer-status">'
     to_str = '</span>'
-    closed += Parser.data(html).from(from_str).to(to_str).iterate().length
+    ans_state = Parser.data(html).from(from_str).to(to_str).iterate()
+    closed += ans_state.filter(row => row.match(' answered ')).length
   }
   console.log(closed)
   return closed
@@ -247,10 +247,9 @@ function RulzScrape_GetRepliesCount(_forum_config=forum_config) {
   const page_num = Math.ceil(discussion_count / question_per_page)
 
   let html = UrlFetchApp.fetch(forum_url).getContentText();
-  from_str = '"'+forum_url.replace(_forum_config['en']["toppage_url"],"") + '?'
+  from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
-  if (page_num == 1) url_base = forum_url + "?dummy="
 
   let replies = 0
   for (i=1; i<=page_num; i++) {
