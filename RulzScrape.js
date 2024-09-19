@@ -312,13 +312,15 @@ function RulzScrape_GetJsonLinkFromURL(url) {
   // listRepliesUrl
   from_str = "listRepliesUrl: '"; to_str = "',"
   url_base = Parser.data(html).from(from_str).to(to_str).build().replace(/\\u0026/g,"&")
+  console.log(url_base)
   // forumId
-  from_str = "forumId: "; to_str = " ,"
+  from_str = "forumId: "; to_str = ","
   forumId = Parser.data(html).from(from_str).to(to_str).build()
+  console.log(forumId)
   // threadId
-  from_str = "threadId: "; to_str = " }"
+  from_str = "threadId: "; to_str = ","
   threadId = Parser.data(html).from(from_str).to(to_str).build()
-
+  console.log(threadId)
   // Generate URL
   json_url = url_base + "&_w_forumId=" + forumId + "&_w_threadId=" + threadId
   console.log(json_url)
