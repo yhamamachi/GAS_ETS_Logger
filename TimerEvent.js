@@ -11,13 +11,13 @@ function TimerEventDaily() {
 function TimerEventWeekly() {
     RulzFollowUp_RulzSendFollowUpMail()
     RulzScrape_GetQAinfoFromWebPage()
-    FAQ_ranking()
-    FAQ_Logger()
-    FAQ_AccessDomainData()
+    //FAQ_ranking()
+    //FAQ_Logger()
+    //FAQ_AccessDomainData()
 }
 
 function TimerEventMonthly() {
-    RulzGA4_ReportMonthly()
+    // RulzGA4_ReportMonthly()
     GenerateSlide_generateSlide()
 }
 
