@@ -148,15 +148,15 @@ function RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config) {
     titles = Parser.data(html).from(from_str).to(to_str).iterate()
 
     // last activities
-    from_str = 'cell nowrap latest'
+    from_str = '<time datetime="'
     to_str = '</time>'
     last_updates = Parser.data(html).from(from_str).to(to_str).iterate()
 
     for (j=0; j<ans_state.length; ++j){
-      if(!ans_state[j].match(' answered ')) {
+      if(ans_state[j].match(' unanswered ')) {
         url = blocks[j].split('"')[1]
         posted_user = last_posted[j].split('>')[1]
-        title = titles[j].split('">')[1]
+        title = titles[j].split('" >')[1]
         last_update = last_updates[j].split('Z">')[1]
         // console.log("Not closed : ", url, posted_user)
         // console.log(title, url, posted_user, last_update)
