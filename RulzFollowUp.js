@@ -17,6 +17,7 @@ forum_config = {
   },
   ja: {}, // ForumのJP版は存在しない
 }
+_rulz_header_option = {"headers": {'Accept-Language': 'en-US,en;q=0.5'}} // Force to get English page
 
 /** デバッグ時に使用。メールが飛ばなくなる。手動で書き換えず、__Debug_xxxx functionの使用を推奨 */
 var g_debugFlag = false
@@ -92,7 +93,7 @@ function RulzFollowUp_sendMail(subject, body, debugFlag) {
  */
 function RulzFollowUp_GetForumQuestionCountFromForumListPage(_forum_config=forum_config) {
   let question_count = -1;
-  let html = UrlFetchApp.fetch(_forum_config["en"]["forum_list_url"]).getContentText();
+  let html = UrlFetchApp.fetch(_forum_config["en"]["forum_list_url"], _rulz_header_option).getContentText();
   _forum_list = Parser.data(html).from('<li class="content-item with-href"').to('<div class="minimal cell nowrap latest metadata">').iterate()
   _forum_list.forEach(function(forum){
     forum_link = Parser.data(forum).from('data-href="').to('">').build()
@@ -109,7 +110,7 @@ function RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config) {
   const question_per_page = 20
   const discussion_count = RulzFollowUp_GetForumQuestionCountFromForumListPage()
   const forum_url = _forum_config["en"]["target_forum_url"];
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  let html = UrlFetchApp.fetch(forum_url, _rulz_header_option).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
@@ -123,7 +124,7 @@ function RulzFollowUp_GetOpenedQuestions(_forum_config=forum_config) {
   let results = []
   for (i=1; i<=page_num; i++) {
     let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
     console.log("Get URLs: ", i, "/", page_num)
 
     // views Q&A link(split block with h2 tag)
@@ -178,7 +179,7 @@ function RulzFollowUp_GetWhiteboxStatistics(_forum_config=forum_config) {
   url_counter = 1
   urls.forEach(function(url){
     console.log("Get TAGs: ", url_counter, "/", urls.length); url_counter += 1
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
     // OpenDate
     from_str = 'data-dateutc="'; to_str = 'T'
     open_date = Parser.data(html).from(from_str).to(to_str).build()
@@ -241,7 +242,7 @@ function RulzFollowUp_GetWhiteboxStatistics(_forum_config=forum_config) {
 function RulzFollowUp_GetDiscussionList(_forum_config=forum_config) {
   const discussion_count = RulzFollowUp_GetForumQuestionCountFromForumListPage(forum_config)
   const forum_url = _forum_config["en"]["target_forum_url"]
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  let html = UrlFetchApp.fetch(forum_url, _rulz_header_option).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
@@ -250,7 +251,7 @@ function RulzFollowUp_GetDiscussionList(_forum_config=forum_config) {
   let urls = [];
   for (i=1; i<=page_num; i++) {
     let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
     from_str = '<h2>'; to_str = '</h2>'
     blocks = Parser.data(html).from(from_str).to(to_str).iterate()
     loop = blocks.length
@@ -262,7 +263,7 @@ function RulzFollowUp_GetDiscussionList(_forum_config=forum_config) {
 }
 
 function RulzFollowUp_GetJsonLinkFromURL(url) {
-  let html = UrlFetchApp.fetch(url).getContentText();
+  let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
   // listRepliesUrl
   from_str = "listRepliesUrl: '"; to_str = "',"
   url_base = Parser.data(html).from(from_str).to(to_str).build().replace(/\\u0026/g,"&")
@@ -283,7 +284,7 @@ function RulzFollowUp_GetJsonLinkFromURL(url) {
 }
 
 function RulzFollowUp_GetReplyInfoFromJson(json_url) {
-  let html = UrlFetchApp.fetch(json_url).getContentText();
+  let html = UrlFetchApp.fetch(json_url, _rulz_header_option).getContentText();
 
   from_str = '0px\\" alt=\\"'; to_str = '\\" '
   authors = Parser.data(html).from(from_str).to(to_str).iterate()

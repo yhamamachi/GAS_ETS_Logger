@@ -21,6 +21,7 @@ forum_config = {
   },
   ja: {}, // ForumのJP版は存在しない
 }
+_rulz_header_option = {"headers": {'Accept-Language': 'en-US,en;q=0.5'}} // Force to get English page
 
 /**
  * Trigger Function
@@ -37,7 +38,7 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
   url_counter = 1
   urls.forEach(function(url){
     console.log("Get TAGs: ", url_counter, "/", urls.length); url_counter += 1
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
     // Category(TAG)
     from_str = 'keywords" content="'; to_str = '" />'
     categories = Parser.data(html).from(from_str).to(to_str).build()
@@ -143,7 +144,7 @@ function RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config=forum_c
   //forum_list_url = "https://community.renesas.com/automotive/r-car-h3-m3-cockpit/f";
   
   let question_count = -1;
-  let html = UrlFetchApp.fetch(_forum_config["en"]["forum_list_url"]).getContentText();
+  let html = UrlFetchApp.fetch(_forum_config["en"]["forum_list_url"], _rulz_header_option).getContentText();
   _forum_list = Parser.data(html).from('<li class="content-item with-href"').to('<div class="minimal cell nowrap latest metadata">').iterate()
   _forum_list.forEach(function(forum){
     forum_link = Parser.data(forum).from('data-href="').to('">').build()
@@ -164,7 +165,7 @@ function RulzScrape_GetMemberFromWebPage(_forum_config=forum_config) {
   url = _forum_config["en"]["toppage_url"] + "/automotive/subgrouplist"
   let member = -1
 
-  let html = UrlFetchApp.fetch(url).getContentText();
+  let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
   const search_str_start = _forum_config["en"]["target_group"] // for member count
   const search_str_end = 'members' // for member count
   let _member = Parser.data(html).from(search_str_start).to(search_str_end).build() // extract required block
@@ -181,7 +182,7 @@ function RulzScrape_GetMemberFromWebPage(_forum_config=forum_config) {
 function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
   const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(forum_config)
   const forum_url = _forum_config["en"]["target_forum_url"]
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  let html = UrlFetchApp.fetch(forum_url, _rulz_header_option).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
@@ -192,7 +193,7 @@ function RulzScrape_GetDiscussionList(_forum_config=forum_config) {
   let urls = [];
   for (i=1; i<=page_num; i++) {
     let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
     console.log("Get URLs: ", i, "/", page_num)
     // views Q&A link(split block with h2 tag)
     from_str = '<h2>'; to_str = '</h2>'
@@ -216,7 +217,7 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
   const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
   const page_num = Math.ceil(discussion_count / question_per_page)
 
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  let html = UrlFetchApp.fetch(forum_url, _rulz_header_option).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
@@ -224,7 +225,7 @@ function RulzScrape_GetClosedDiscussion(_forum_config=forum_config) {
   let closed = 0
   for (i=1; i<=page_num; i++) {
     let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
 
     // discussion info
     from_str = 'answer-status">'
@@ -246,7 +247,7 @@ function RulzScrape_GetRepliesCount(_forum_config=forum_config) {
   const discussion_count = RulzScrape_GetForumQuestionCountFromForumListPage(_forum_config)
   const page_num = Math.ceil(discussion_count / question_per_page)
 
-  let html = UrlFetchApp.fetch(forum_url).getContentText();
+  let html = UrlFetchApp.fetch(forum_url, _rulz_header_option).getContentText();
   from_str = 'data-pagekey="'
   url_base = forum_url + '?' +
     Parser.data(html).from(from_str).to('"').build() + "="
@@ -254,7 +255,7 @@ function RulzScrape_GetRepliesCount(_forum_config=forum_config) {
   let replies = 0
   for (i=1; i<=page_num; i++) {
     let url = url_base + i
-    let html = UrlFetchApp.fetch(url).getContentText();
+    let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
 
     // views replies
     from_str = '<span class="value">'
@@ -308,7 +309,7 @@ function RulzScrape_updateSheet(mySheetName, values){
 
 
 function RulzScrape_GetJsonLinkFromURL(url) {
-  let html = UrlFetchApp.fetch(url).getContentText();
+  let html = UrlFetchApp.fetch(url, _rulz_header_option).getContentText();
   // listRepliesUrl
   from_str = "listRepliesUrl: '"; to_str = "',"
   url_base = Parser.data(html).from(from_str).to(to_str).build().replace(/\\u0026/g,"&")
@@ -330,7 +331,7 @@ function RulzScrape_GetJsonLinkFromURL(url) {
 
 function RulzScrape__GetReplyInfoFromJson(json_url) {
   console.log(json_url)
-  let html = UrlFetchApp.fetch(json_url).getContentText();
+  let html = UrlFetchApp.fetch(json_url, _rulz_header_option).getContentText();
 
   from_str = '0px\\" alt=\\"'; to_str = '\\" '
   authors = Parser.data(html).from(from_str).to(to_str).iterate()
