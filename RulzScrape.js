@@ -55,7 +55,7 @@ function RulzScrape_GetQAinfoFromWebPage(_forum_config=forum_config) {
     close_state = close_state.replace(/ /g,"").replace(/	/g,"").replace(/verified/g,"closed")
     // Y.H. answered = WB related
     const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
-    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+    var _data = RulzScrape_GetReplyInfoFromJson(qa_json_url);
     category = "other";
     for (let n=0; n<_data.length; ++n) {
       if(_data[n][1].match('Y.H.')) { // _data[n] = [date, reply_author]
@@ -119,7 +119,7 @@ function RulzScrape_GetReplyData_Daily(_forum_config=forum_config) {
   data_list.push(sheet_headers)
   urls.forEach(function(url){
     const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
-    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+    var _data = RulzScrape_GetReplyInfoFromJson(qa_json_url);
 
     for (let n=0; n<_data.length; ++n) {
       var _insert_data = [url, ..._data[n]]
@@ -329,7 +329,7 @@ function RulzScrape_GetJsonLinkFromURL(url) {
   return json_url;
 }
 
-function RulzScrape__GetReplyInfoFromJson(json_url) {
+function RulzScrape_GetReplyInfoFromJson(json_url) {
   console.log(json_url)
   let html = UrlFetchApp.fetch(json_url, _rulz_header_option).getContentText();
 
@@ -358,7 +358,7 @@ function RulzScrape__GetReplyInfoFromJson(json_url) {
     last_reply_id = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
     console.log("last_reply_id:", last_reply_id)
     const new_json_url = json_url + "&_w_flattenedDepth=0&_w_startReplyId=" + last_reply_id
-    const tmp_data_list = _GetReplyInfoFromJson(new_json_url)
+    const tmp_data_list = RulzScrape_GetReplyInfoFromJson(new_json_url)
     data_list.push(...tmp_data_list)
   }
   console.log()

@@ -189,7 +189,7 @@ function RulzFollowUp_GetWhiteboxStatistics(_forum_config=forum_config) {
     close_state = close_state.replace(/ /g,"").replace(/	/g,"").replace(/verified/g,"closed")
     // Category: Y.H. answered = WB related
     const qa_json_url = RulzScrape_GetJsonLinkFromURL(url)
-    var _data = RulzScrape__GetReplyInfoFromJson(qa_json_url);
+    var _data = RulzFollowUp_GetReplyInfoFromJson(qa_json_url);
     category = "other";
     for (let n=0; n<_data.length; ++n) {
       if(_data[n][1].match('Y.H.')) { // _data[n] = [date, reply_author]
@@ -307,7 +307,7 @@ function RulzFollowUp_GetReplyInfoFromJson(json_url) {
     from_str = '"id": "'; to_str = '",'
     last_reply_id = Parser.data(html).from(from_str).to(to_str).iterate().slice(-1)[0]
     const new_json_url = json_url + "&_w_flattenedDepth=0&_w_startReplyId=" + last_reply_id
-    const tmp_data_list = _GetReplyInfoFromJson(new_json_url)
+    const tmp_data_list = RulzFollowUp_GetReplyInfoFromJson(new_json_url)
     data_list.push(...tmp_data_list)
   }
   return data_list;
